@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # shellcheck disable=SC1090,SC2086,SC2154,SC2034,SC2012,SC2140,SC2028
 
 ########## Global tasks ###########################################
@@ -33,11 +33,11 @@ usage() {
   cat <<-EOF
 		Usage: $(basename "$0") [-o] [-a] [-b <branch name>]
 		CNTools - The Cardano SPOs best friend
-		
+
 		-o    Activate offline mode - run CNTools in offline mode without node access, a limited set of functions available
 		-a    Enable advanced/developer features like metadata transactions, multi-asset management etc (not needed for SPO usage)
 		-b    Run CNTools and look for updates on alternate branch instead of master of guild repository (only for testing/development purposes)
-		
+
 		EOF
 }
 
@@ -162,10 +162,10 @@ if [[ ${CNTOOLS_MODE} = "CONNECTED" ]]; then
       if curl -s -f -m ${CURL_TIMEOUT} -o "${TMP_DIR}"/cntools-changelog.md "${URL_DOCS}/cntools-changelog.md"; then
         if ! cmp -s "${TMP_DIR}"/cntools-changelog.md "${PARENT}/cntools-changelog.md"; then
           # Latest changes not shown, show whats new and copy changelog
-          clear 
+          clear
           exec >&6 # normal stdout
           sleep 0.1
-          if [[ ! -f "${PARENT}/cntools-changelog.md" ]]; then 
+          if [[ ! -f "${PARENT}/cntools-changelog.md" ]]; then
             # special case for first installation or 5.0.0 upgrade, print release notes until previous major version
             println "OFF" "~ CNTools - What's New ~\n\n" "$(sed -n "/\[${CNTOOLS_MAJOR_VERSION}\.${CNTOOLS_MINOR_VERSION}\.${CNTOOLS_PATCH_VERSION}\]/,/\[$((CNTOOLS_MAJOR_VERSION-1))\.[0-9]\.[0-9]\]/p" "${TMP_DIR}"/cntools-changelog.md | head -n -2)" | less -X
           else
@@ -540,7 +540,7 @@ function main {
                 payment_sk_file="${WALLET_FOLDER}/${wallet_name}/${WALLET_HW_PAY_SK_FILENAME}"
                 payment_vk_file="${WALLET_FOLDER}/${wallet_name}/${WALLET_PAY_VK_FILENAME}"
                 stake_sk_file="${WALLET_FOLDER}/${wallet_name}/${WALLET_HW_STAKE_SK_FILENAME}"
-                stake_vk_file="${WALLET_FOLDER}/${wallet_name}/${WALLET_STAKE_VK_FILENAME}"  
+                stake_vk_file="${WALLET_FOLDER}/${wallet_name}/${WALLET_STAKE_VK_FILENAME}"
                 if ! unlockHWDevice "extract ${FG_LGRAY}payment keys${NC}"; then safeDel "${WALLET_FOLDER}/${wallet_name}"; continue; fi
                 println "ACTION" "cardano-hw-cli address key-gen --path 1852H/1815H/0H/0/0 --verification-key-file ${payment_vk_file} --hw-signing-file ${payment_sk_file}"
                 if ! cardano-hw-cli address key-gen --path 1852H/1815H/0H/0/0 --verification-key-file "${payment_vk_file}" --hw-signing-file "${payment_sk_file}"; then
@@ -1069,7 +1069,7 @@ function main {
               if ! selectOpMode; then continue; fi
             fi
             echo
-            
+
             println "DEBUG" "# Select ${FG_YELLOW}source${NC} wallet"
             if [[ ${op_mode} = "online" ]]; then
               if ! selectWallet "balance" "${WALLET_PAY_VK_FILENAME}"; then # ${wallet_name} populated by selectWallet function
@@ -1125,7 +1125,7 @@ function main {
               println "ERROR" "${FG_RED}ERROR${NC}: no funds available for wallet ${FG_GREEN}${s_wallet}${NC}"
               waitForInput && continue
             fi
-            
+
             getBalance ${s_addr}
             declare -gA assets_left=()
             for asset in "${!assets[@]}"; do
@@ -1175,7 +1175,7 @@ function main {
               assets_left[lovelace]=$(( assets_left[lovelace] - amount_lovelace ))
               assets_to_send[lovelace]=${amount_lovelace}
             fi
-            
+
             # Add additional assets to transaction?
             if [[ ${#assets_left[@]} -gt 0 && ${#assets[@]} -gt 1 ]]; then
               println "DEBUG" "Additional assets found on address, include in transaction?"
@@ -1214,7 +1214,7 @@ function main {
                        1) : ;;
                        2) continue 2 ;;
                      esac
-                   done 
+                   done
                    ;;
                 2) continue ;;
               esac
@@ -1915,7 +1915,7 @@ function main {
                             waitForInput "Did you mean to run in Hybrid mode?  press any key to return home!" && continue 2 ;;
                          4) if [[ ! -f "${WALLET_FOLDER}/${wallet_name}/${WALLET_STAKE_VK_FILENAME}" ]]; then # ignore if payment vkey is missing
                               println "ERROR" "${FG_RED}ERROR${NC}: stake verification key missing from wallet ${FG_GREEN}${wallet_name}${NC}!"
-                              println "DEBUG" "Add another owner?" && continue 
+                              println "DEBUG" "Add another owner?" && continue
                             fi ;;
                        esac
                      else
@@ -2673,7 +2673,7 @@ function main {
             echo -e "${otx_txBody}" > "${TMP_DIR}"/tx.raw
             [[ $(jq -r '."signed-txBody" | length' <<< ${offlineJSON}) -gt 0 ]] && println "ERROR" "${FG_RED}ERROR${NC}: transaction already signed, please submit transaction to complete!" && waitForInput && continue
             println "DEBUG" "Transaction type : ${FG_GREEN}${otx_type}${NC}"
-            if wallet_name=$(jq -er '."wallet-name"' <<< ${offlineJSON}); then 
+            if wallet_name=$(jq -er '."wallet-name"' <<< ${offlineJSON}); then
               println "DEBUG" "Transaction fee  : ${FG_LBLUE}$(formatLovelace ${otx_txFee})${NC} Ada, payed by ${FG_GREEN}${wallet_name}${NC}"
               [[ $(cat "${WALLET_FOLDER}/${wallet_name}/${WALLET_PAY_ADDR_FILENAME}" 2>/dev/null) = "${addr}" ]] && wallet_source="enterprise" || wallet_source="base"
             else
@@ -2863,7 +2863,7 @@ function main {
             if ! otx_signed_txBody=$(jq -er '."signed-txBody"' <<< ${offlineJSON}); then println "ERROR" "${FG_RED}ERROR${NC}: field 'signed-txBody' not found in: ${offline_tx}" && waitForInput && continue; fi
             [[ $(jq 'length' <<< ${otx_signed_txBody}) -eq 0 ]] && println "ERROR" "${FG_RED}ERROR${NC}: transaction not signed, please sign transaction first!" && waitForInput && continue
             println "DEBUG" "Transaction type : ${FG_YELLOW}${otx_type}${NC}"
-            if jq -er '."wallet-name"' &>/dev/null <<< ${offlineJSON}; then 
+            if jq -er '."wallet-name"' &>/dev/null <<< ${offlineJSON}; then
               println "DEBUG" "Transaction fee  : ${FG_LBLUE}$(formatLovelace ${otx_txFee})${NC} Ada, payed by ${FG_GREEN}$(jq -r '."wallet-name"' <<< ${offlineJSON})${NC}"
             else
               println "DEBUG" "Transaction fee  : ${FG_LBLUE}$(formatLovelace ${otx_txFee})${NC} Ada"
@@ -2927,7 +2927,7 @@ function main {
                 fi
                 echo
                 println "Offline transaction successfully submitted and set to be included in next block!"
-                echo 
+                echo
                 println "DEBUG" "Delete submitted offline transaction file?"
                 select_opt "[y] Yes" "[n] No"
                 case $? in
@@ -3377,7 +3377,7 @@ function main {
           2) SUBCOMMAND="del-keys" ;;
           3) continue ;;
         esac
-        case $SUBCOMMAND in  
+        case $SUBCOMMAND in
           metadata)
             clear
             println "DEBUG" "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -3542,7 +3542,7 @@ function main {
               5) SUBCOMMAND="burn-asset" ;;
               6) continue ;;
             esac
-            case $SUBCOMMAND in  
+            case $SUBCOMMAND in
               create-policy)
                 clear
                 println "DEBUG" "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -3934,7 +3934,7 @@ function main {
                 IFS=' ' read -ra selection_arr <<< "${assets_on_wallet[${selection}]}"
                 asset="${selection_arr[0]}"
                 IFS='.' read -ra asset_arr <<< "${selection_arr[0]}"
-                if [[ ${selection_arr[1]} = *"base" ]]; then 
+                if [[ ${selection_arr[1]} = *"base" ]]; then
                   addr=${base_addr}
                   wallet_source="base"
                   asset_amount=${base_assets[${asset}]}
@@ -3944,16 +3944,16 @@ function main {
                   asset_amount=${pay_assets[${asset}]}
                 fi
                 echo
-                
+
                 # Search policies for a match
                 asset_file=""
                 while IFS= read -r -d '' file; do
                   [[ ${asset_arr[0]} = "$(jq -r .policyID ${file})" ]] && asset_file="${file}" && break
                 done < <(find "${ASSET_FOLDER}" -mindepth 2 -maxdepth 2 -type f -name '*.asset' -print0)
                 [[ -z ${asset_file} ]] && println "ERROR" "${FG_RED}ERROR${NC}: Searched all available policies in '${ASSET_FOLDER}' for matching '.asset' file but non found!" && waitForInput && continue
-                
+
                 [[ ${#asset_arr[@]} -eq 1 ]] && asset_name="" || asset_name="${asset_arr[1]}"
-                
+
                 # Policy filenames
                 policy_folder="$(dirname "${asset_file}")"
                 policy_name="$(basename "${policy_folder}")"
